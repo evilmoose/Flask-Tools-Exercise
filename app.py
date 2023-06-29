@@ -18,6 +18,13 @@ def show_start_page():
     
     return render_template("start.html", survey=survey)
 
+@app.route("/begin", methods=["POST"])
+def start_survey():
+
+    session[RESPONSES_KEY] = []
+
+    return redirect("/questions/0")
+
 @app.route('/questions/<int:qid>')
 def show_question(qid):
 
