@@ -1,5 +1,4 @@
-from curses import flash
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
 from surveys import satisfaction_survey as survey
 
@@ -8,31 +7,34 @@ app = Flask(__name__)
 app.debug = True
 
 app.config['SECRET_KEY'] = "never-tell!"
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 toolbar = DebugToolbarExtension(app)
 
-responses = []
+RESPONSES_KEY = "responses"
 
 @app.route('/')
 def show_start_page():
     
-    return render_template("start.html", survey=survey["satisfaction"])
+    return render_template("start.html", survey=survey)
 
 @app.route('/questions/<int:qid>')
 def show_question(qid):
 
+    responses = session.get(RESPONSES_KEY)
+
     if (responses is None):
         return redirect("/")
 
-    if qid != len(responses):
-        return redirect(url_for('show_question', qid=len(responses)))
+    if (len(responses) == len(survey.questions)):
+        return redirect('/thanks')
     
-    if qid != len(responses):
+    if (len(responses) != qid):
         flash(f"You're trying to access an invalid question.")
-        return redirect(url_for('show_question', qid=len(responses)))
+        return redirect(f"/questions/{len(responses)}")
 
-    question = survey["satisfaction"].questions[qid]
-    return render_template(f"question.html", question=question)
+    question = survey.questions[qid]
+    return render_template("question.html", question=question)
 
     
 
@@ -40,11 +42,14 @@ def show_question(qid):
 def handle_answer():
     
     answer = request.form['answer']
+    responses = session[RESPONSES_KEY]
     responses.append(answer)
-    if len(responses) == len(survey["satisfaction"].questions):
-        return redirect(url_for('show_thanks'))
+    session[RESPONSES_KEY] = responses
+
+    if len(responses) == len(survey.questions):
+        return redirect('/thanks')
     else:
-        return redirect(url_for('show_question', qid=len(responses)))
+        return redirect(f"/questions',{len(responses)}")
     
 @app.route('/thanks')
 def show_thanks():
