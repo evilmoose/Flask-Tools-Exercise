@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_debugtoolbar import DebugToolbarExtension
 
 app = Flask(__name__)
@@ -10,3 +10,10 @@ app.debug = True
 app.config['SECRET_KEY'] = '<replace with a secret key>'
 
 toolbar = DebugToolbarExtension(app)
+
+responses = []
+
+@app.route('/')
+def show_start_page():
+    # Render start page with title and instructions
+    return render_template("start.html", survey=surveys["satisfaction"])
