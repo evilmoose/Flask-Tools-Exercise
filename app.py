@@ -34,3 +34,7 @@ def handle_answer():
         return redirect(url_for('show_thanks'))
     else:
         return redirect(url_for('show_question', qid=len(responses)))
+    
+@app.route('/thanks')
+def show_thanks():
+    return render_template("thanks.html")
